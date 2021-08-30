@@ -41,7 +41,7 @@ impl Hitable for HitableList {
         let mut closest_so_far = tmax;
 
         for object in self.objects.iter() {
-            if object.hit(ray, tmin, tmax, &mut temp_rec) {
+            if object.hit(ray, tmin, closest_so_far, &mut temp_rec) {
                 hit_anything = true;
                 closest_so_far = temp_rec.t;
                 *rec = temp_rec.clone();

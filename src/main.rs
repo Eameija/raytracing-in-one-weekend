@@ -20,16 +20,8 @@ fn main() {
     let width: u16 = 800;
     let aspect_ratio: f32 = 16.0 / 9.0;
     let height: u16 = (width as f32 / aspect_ratio) as u16;
-    let viewport_height: f32 = 2.0;
-    let viewport_width: f32 = aspect_ratio * viewport_height;
-    let focal_length = 1.0;
     let samples_per_pixel = 1;
 
-    let origin = Vec3::ZERO;
-    let horizontal = Vec3::new(viewport_width, 0.0, 0.0);
-    let vertical = Vec3::new(0.0, viewport_height, 0.0);
-    let lower_left_corner =
-        origin - horizontal / 2.0 - vertical / 2.0 - Vec3::new(0.0, 0.0, focal_length);
     let path = Path::new(r"./image.png");
     let file = File::create(path).unwrap();
     let w = &mut BufWriter::new(file);
@@ -45,8 +37,8 @@ fn main() {
                 radius: 0.5,
             }),
             Box::new(Sphere {
-                center: Vec3::new(1.0, 0.0, -1.0),
-                radius: 0.5,
+                center: Vec3::new(0.0, -100.5, -1.0),
+                radius: 100.0,
             }),
         ],
     };
@@ -55,7 +47,7 @@ fn main() {
 
     let mut pixels: Vec<u8> = vec![];
 
-    for y in 0..height {
+    for y in (0..=height - 1).rev() {
         for x in 0..width {
             let mut color = Vec3::ZERO;
             for s in 0..samples_per_pixel {
@@ -81,19 +73,19 @@ fn main() {
 
 fn ray_color(ray: &Ray, world: &dyn Hitable) -> Vec3 {
     let mut hit_record = HitRecord {
-        p: Vec3::new(0.0, 0.0, 0.0),
-        normal: Vec3::new(0.0, 0.0, 0.0),
+        p: Vec3::ZERO,
+        normal: Vec3::ZERO,
         t: 0.0,
         front_face: false,
     };
 
-    if world.hit(ray, 0.0, 1000000.0, &mut hit_record) {
+    if world.hit(ray, 0.0, f32::INFINITY, &mut hit_record) {
         return 0.5 * (hit_record.normal + Vec3::ONE);
     }
 
-    let unit_direction = ray.direction.clone().normalize();
+    let unit_direction = ray.direction.normalize();
 
-    let t = 0.5 * (unit_direction[1] + 1.0);
+    let t = 0.5 * (unit_direction.y + 1.0);
 
-    (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
+    (1.0 - t) * Vec3::ONE + t * Vec3::new(0.5, 0.7, 1.0)
 }

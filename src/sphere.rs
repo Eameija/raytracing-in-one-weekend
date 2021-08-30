@@ -21,7 +21,7 @@ impl Hitable for Sphere {
         }
 
         let sqrtd = discriminant.sqrt();
-        let mut root = (-half_b - sqrtd) - a;
+        let mut root = (-half_b - sqrtd) / a;
 
         if root < tmin || tmax < root {
             root = (-half_b + sqrtd) / a;

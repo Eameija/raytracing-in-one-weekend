@@ -1,14 +1,13 @@
-extern crate nalgebra;
-use nalgebra::Vector3;
+use glam::Vec3;
 
 #[derive(Debug)]
 pub struct Ray {
-    pub origin: Vector3<f32>,
-    pub direction: Vector3<f32>,
+    pub origin: Vec3,
+    pub direction: Vec3,
 }
 
 impl Ray {
-    pub fn at(&self, t: f32) -> Vector3<f32> {
+    pub fn at(&self, t: f32) -> Vec3 {
         self.origin + t * self.direction
     }
 }

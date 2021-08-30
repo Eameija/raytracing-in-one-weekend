@@ -1,22 +1,20 @@
 use crate::hitable::{Hitable, HitRecord};
 use crate::ray::Ray;
-use nalgebra::Vector3;
+use glam::Vec3;
 
 pub struct Sphere {
-    pub center: Vector3<f32>,
+    pub center: Vec3,
     pub radius: f32,
 }
 
 impl Hitable for Sphere {
     fn hit(&self, ray: &Ray, tmin: f32, tmax: f32, rec:  &mut HitRecord ) -> bool {
         let oc = ray.origin - self.center;
-        let a = ray.direction.norm_squared();
-        let half_b = oc.dot(&ray.direction);
-        let c = oc.norm_squared() - self.radius * self.radius;
+        let a = ray.direction.length_squared();
+        let half_b = oc.dot(ray.direction);
+        let c = oc.length_squared() - self.radius * self.radius;
 
         let discriminant = half_b * half_b - a * c;
-
-        println!("{:?}", discriminant);
 
         if discriminant < 0.0 {
             return false;

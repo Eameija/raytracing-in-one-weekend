@@ -21,7 +21,7 @@ impl HitRecord {
 }
 
 pub trait Hitable {
-    fn hit(&self, ray: &Ray, tmin: f32, tmax: f32, rec: &mut HitRecord) -> bool;
+    fn hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<HitRecord>;
 }
 
 pub struct HitableList {
@@ -29,25 +29,17 @@ pub struct HitableList {
 }
 
 impl Hitable for HitableList {
-    fn hit(&self, ray: &Ray, tmin: f32, tmax: f32, rec: &mut HitRecord) -> bool {
-        let mut temp_rec: HitRecord = HitRecord {
-            p: Vec3::ZERO,
-            normal: Vec3::ZERO,
-            t: 0.0,
-            front_face: false,
-        };
-
-        let mut hit_anything = false;
+    fn hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<HitRecord> {
+        let mut best_hit = None;
         let mut closest_so_far = tmax;
 
         for object in self.objects.iter() {
-            if object.hit(ray, tmin, closest_so_far, &mut temp_rec) {
-                hit_anything = true;
-                closest_so_far = temp_rec.t;
-                *rec = temp_rec.clone();
+            if let Some(hit) = object.hit(ray, tmin, closest_so_far) {
+                closest_so_far = hit.t;
+                best_hit = Some(hit);
             }
         }
 
-        hit_anything
+        best_hit
     }
 }

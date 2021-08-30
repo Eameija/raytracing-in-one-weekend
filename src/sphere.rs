@@ -8,7 +8,7 @@ pub struct Sphere {
 }
 
 impl Hitable for Sphere {
-    fn hit(&self, ray: &Ray, tmin: f32, tmax: f32, rec:  &mut HitRecord ) -> bool {
+    fn hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<HitRecord> {
         let oc = ray.origin - self.center;
         let a = ray.direction.length_squared();
         let half_b = oc.dot(ray.direction);
@@ -17,7 +17,7 @@ impl Hitable for Sphere {
         let discriminant = half_b * half_b - a * c;
 
         if discriminant < 0.0 {
-            return false;
+            return None;
         }
 
         let sqrtd = discriminant.sqrt();
@@ -27,16 +27,22 @@ impl Hitable for Sphere {
             root = (-half_b + sqrtd) / a;
 
             if root < tmin || tmax < root {
-                return false;
+                return None;
             }
             
         }
 
-        rec.t = root;
-        rec.p = ray.at(rec.t);
-        let outward_normal = (rec.p - self.center) / self.radius;
-        rec.set_face_normal(ray, outward_normal);
+        let point = ray.at(root);
+        let outward_normal = (point - self.center) / self.radius;
+        let mut hit = HitRecord {
+            t: root,
+            p: point,
+            normal: outward_normal,
+            front_face: false,
+        };
 
-        true
+        hit.set_face_normal(ray, hit.normal);
+
+        Some(hit)
     }
 }

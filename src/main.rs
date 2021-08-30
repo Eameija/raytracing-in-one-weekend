@@ -8,19 +8,23 @@ mod hitable;
 mod ray;
 mod sphere;
 mod utils;
-use hitable::{HitRecord, Hitable};
 use glam::Vec3;
+use hitable::Hitable;
 use ray::Ray;
+
 
 use crate::camera::Camera;
 use crate::utils::random_double;
 use crate::{hitable::HitableList, sphere::Sphere};
 
+use self::utils::random_in_hemisphere;
+
 fn main() {
     let width: u16 = 800;
     let aspect_ratio: f32 = 16.0 / 9.0;
     let height: u16 = (width as f32 / aspect_ratio) as u16;
-    let samples_per_pixel = 1;
+    let samples_per_pixel = 20;
+    let max_depth = 50;
 
     let path = Path::new(r"./image.png");
     let file = File::create(path).unwrap();
@@ -55,12 +59,12 @@ fn main() {
                 let v: f32 = ((y as f32) + random_double()) / ((height as f32) - 1.0);
 
                 let ray = camera.get_ray(u, v);
-                color += ray_color(&ray, &world);
+                color += ray_color(&ray, &world, max_depth);
             }
             let scale = 1.0 / (samples_per_pixel as f32);
-            let r = color.x * scale;
-            let g = color.y * scale;
-            let b = color.z * scale;
+            let r = (color.x * scale).sqrt();
+            let g = (color.y * scale).sqrt();
+            let b = (color.z * scale).sqrt();
 
             pixels.push((256.0 * r.clamp(0.0, 0.999)) as u8);
             pixels.push((256.0 * g.clamp(0.0, 0.999)) as u8);
@@ -71,16 +75,23 @@ fn main() {
     writer.write_image_data(&pixels).unwrap();
 }
 
-fn ray_color(ray: &Ray, world: &dyn Hitable) -> Vec3 {
-    let mut hit_record = HitRecord {
-        p: Vec3::ZERO,
-        normal: Vec3::ZERO,
-        t: 0.0,
-        front_face: false,
-    };
+fn ray_color(ray: &Ray, world: &dyn Hitable, depth: u8) -> Vec3 {
 
-    if world.hit(ray, 0.0, f32::INFINITY, &mut hit_record) {
-        return 0.5 * (hit_record.normal + Vec3::ONE);
+    if depth == 0 {
+        return Vec3::ZERO;
+    }
+
+    if let Some(hit) = world.hit(ray, 0.001, f32::INFINITY) {
+        let target = hit.p + hit.normal + random_in_hemisphere(&hit.normal);
+        return 0.5
+            * ray_color(
+                &Ray {
+                    origin: hit.p,
+                    direction: target - hit.p,
+                },
+                world,
+                depth - 1,
+            );
     }
 
     let unit_direction = ray.direction.normalize();

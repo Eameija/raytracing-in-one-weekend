@@ -5,6 +5,7 @@ extern crate glam;
 
 mod camera;
 mod hitable;
+mod material;
 mod ray;
 mod sphere;
 mod utils;
@@ -12,18 +13,18 @@ use glam::Vec3;
 use hitable::Hitable;
 use ray::Ray;
 
-
 use crate::camera::Camera;
+use crate::material::{Lambertian, Metal};
 use crate::utils::random_double;
 use crate::{hitable::HitableList, sphere::Sphere};
 
 use self::utils::random_in_hemisphere;
 
 fn main() {
-    let width: u16 = 800;
+    let width: u16 = 1200;
     let aspect_ratio: f32 = 16.0 / 9.0;
     let height: u16 = (width as f32 / aspect_ratio) as u16;
-    let samples_per_pixel = 20;
+    let samples_per_pixel = 100;
     let max_depth = 50;
 
     let path = Path::new(r"./image.png");
@@ -34,14 +35,31 @@ fn main() {
     encoder.set_color(png::ColorType::RGBA);
     encoder.set_depth(png::BitDepth::Eight);
     let mut writer = encoder.write_header().unwrap();
+    let material_ground = Box::new(Lambertian {
+        albedo: Vec3::new(0.8, 0.8, 0.0),
+    });
+    let material = Box::new(Lambertian {
+        albedo: Vec3::new(0.7, 0.3, 0.3),
+    });
+    let material_metal = Box::new(Metal {
+        albedo: Vec3::new(0.7, 0.3, 0.3),
+    });
+
     let world = HitableList {
         objects: vec![
             Box::new(Sphere {
-                center: Vec3::new(0.0, 0.0, -1.0),
+                center: Vec3::new(-0.5, 0.0, -1.0),
                 radius: 0.5,
+                material,
+            }),
+            Box::new(Sphere {
+                center: Vec3::new(0.5, 0.0, -1.0),
+                radius: 0.5,
+                material: material_metal,
             }),
             Box::new(Sphere {
                 center: Vec3::new(0.0, -100.5, -1.0),
+                material: material_ground,
                 radius: 100.0,
             }),
         ],
@@ -76,22 +94,17 @@ fn main() {
 }
 
 fn ray_color(ray: &Ray, world: &dyn Hitable, depth: u8) -> Vec3 {
-
     if depth == 0 {
         return Vec3::ZERO;
     }
 
     if let Some(hit) = world.hit(ray, 0.001, f32::INFINITY) {
-        let target = hit.p + hit.normal + random_in_hemisphere(&hit.normal);
-        return 0.5
-            * ray_color(
-                &Ray {
-                    origin: hit.p,
-                    direction: target - hit.p,
-                },
-                world,
-                depth - 1,
-            );
+
+        if let Some(scatter) = hit.material.scatter(ray, &hit) {
+            return scatter.attenuation * ray_color(&scatter.scattered, world, depth -1);
+        }
+
+        return Vec3::ZERO;
     }
 
     let unit_direction = ray.direction.normalize();

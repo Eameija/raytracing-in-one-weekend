@@ -1,10 +1,12 @@
 use crate::hitable::{Hitable, HitRecord};
+use crate::material::Material;
 use crate::ray::Ray;
 use glam::Vec3;
 
 pub struct Sphere {
     pub center: Vec3,
     pub radius: f32,
+    pub material: Box<dyn Material>,
 }
 
 impl Hitable for Sphere {
@@ -39,6 +41,7 @@ impl Hitable for Sphere {
             p: point,
             normal: outward_normal,
             front_face: false,
+            material: &*self.material,
         };
 
         hit.set_face_normal(ray, hit.normal);

@@ -14,7 +14,7 @@ use hitable::Hitable;
 use ray::Ray;
 
 use crate::camera::Camera;
-use crate::material::{Lambertian, Metal};
+use crate::material::{Dielectric, Lambertian, Metal};
 use crate::utils::random_double;
 use crate::{hitable::HitableList, sphere::Sphere};
 
@@ -24,7 +24,7 @@ fn main() {
     let width: u16 = 1200;
     let aspect_ratio: f32 = 16.0 / 9.0;
     let height: u16 = (width as f32 / aspect_ratio) as u16;
-    let samples_per_pixel = 100;
+    let samples_per_pixel = 10;
     let max_depth = 50;
 
     let path = Path::new(r"./image.png");
@@ -35,6 +35,9 @@ fn main() {
     encoder.set_color(png::ColorType::RGBA);
     encoder.set_depth(png::BitDepth::Eight);
     let mut writer = encoder.write_header().unwrap();
+
+    let material_dielectric = Box::new(Dielectric { ir: 1.5 });
+
     let material_ground = Box::new(Lambertian {
         albedo: Vec3::new(0.8, 0.8, 0.0),
     });
@@ -43,14 +46,15 @@ fn main() {
     });
     let material_metal = Box::new(Metal {
         albedo: Vec3::new(0.7, 0.3, 0.3),
+        fuzz: 0.2,
     });
 
     let world = HitableList {
         objects: vec![
             Box::new(Sphere {
                 center: Vec3::new(-0.5, 0.0, -1.0),
-                radius: 0.5,
-                material,
+                radius: 0.4,
+                material: material_dielectric,
             }),
             Box::new(Sphere {
                 center: Vec3::new(0.5, 0.0, -1.0),
@@ -99,9 +103,8 @@ fn ray_color(ray: &Ray, world: &dyn Hitable, depth: u8) -> Vec3 {
     }
 
     if let Some(hit) = world.hit(ray, 0.001, f32::INFINITY) {
-
         if let Some(scatter) = hit.material.scatter(ray, &hit) {
-            return scatter.attenuation * ray_color(&scatter.scattered, world, depth -1);
+            return scatter.attenuation * ray_color(&scatter.scattered, world, depth - 1);
         }
 
         return Vec3::ZERO;

@@ -29,6 +29,17 @@ pub struct HitableList {
     pub objects: Vec<Box<dyn Hitable>>,
 }
 
+impl HitableList {
+    pub fn new() -> Self {
+        HitableList {
+            objects: vec![],
+        }
+    }
+
+    pub fn add(&mut self, hitable: impl Hitable + 'static) {
+        self.objects.push(Box::new(hitable));
+    }
+}
 impl Hitable for HitableList {
     fn hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<HitRecord> {
         let mut best_hit = None;

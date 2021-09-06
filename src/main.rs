@@ -11,18 +11,18 @@ mod sphere;
 mod utils;
 use glam::Vec3;
 use hitable::Hitable;
+mod scene;
 use ray::Ray;
 
 use crate::camera::Camera;
 use crate::material::{Dielectric, Lambertian, Metal};
+use crate::scene::random_scene;
 use crate::utils::random_double;
 use crate::{hitable::HitableList, sphere::Sphere};
 
-use self::utils::random_in_hemisphere;
-
 fn main() {
     let width: u16 = 1200;
-    let aspect_ratio: f32 = 16.0 / 9.0;
+    let aspect_ratio: f32 = 3.0 / 2.0;
     let height: u16 = (width as f32 / aspect_ratio) as u16;
     let samples_per_pixel = 10;
     let max_depth = 50;
@@ -36,44 +36,25 @@ fn main() {
     encoder.set_depth(png::BitDepth::Eight);
     let mut writer = encoder.write_header().unwrap();
 
-    let material_dielectric = Box::new(Dielectric { ir: 1.5 });
+    let scene = random_scene();
 
-    let material_ground = Box::new(Lambertian {
-        albedo: Vec3::new(0.8, 0.8, 0.0),
-    });
-    let material = Box::new(Lambertian {
-        albedo: Vec3::new(0.7, 0.3, 0.3),
-    });
-    let material_metal = Box::new(Metal {
-        albedo: Vec3::new(0.7, 0.3, 0.3),
-        fuzz: 0.2,
-    });
+    let lookfrom = Vec3::new(13.0, 2.0, 3.0);
+    let lookat = Vec3::new(0.0, 0.0, 0.0);
 
-    let world = HitableList {
-        objects: vec![
-            Box::new(Sphere {
-                center: Vec3::new(-0.5, 0.0, -1.0),
-                radius: 0.4,
-                material: material_dielectric,
-            }),
-            Box::new(Sphere {
-                center: Vec3::new(0.5, 0.0, -1.0),
-                radius: 0.5,
-                material: material_metal,
-            }),
-            Box::new(Sphere {
-                center: Vec3::new(0.0, -100.5, -1.0),
-                material: material_ground,
-                radius: 100.0,
-            }),
-        ],
-    };
-
-    let camera = Camera::new();
+    let camera = Camera::new(
+        lookfrom,
+        lookat,
+        Vec3::new(0.0, 1.0, 0.0),
+        20.0,
+        aspect_ratio,
+        0.1,
+        10.0
+    );
 
     let mut pixels: Vec<u8> = vec![];
 
-    for y in (0..=height - 1).rev() {
+     for y in (0..=height - 1).rev() {
+        println!("remaining lines: {}", y);
         for x in 0..width {
             let mut color = Vec3::ZERO;
             for s in 0..samples_per_pixel {
@@ -81,7 +62,7 @@ fn main() {
                 let v: f32 = ((y as f32) + random_double()) / ((height as f32) - 1.0);
 
                 let ray = camera.get_ray(u, v);
-                color += ray_color(&ray, &world, max_depth);
+                color += ray_color(&ray, &scene, max_depth);
             }
             let scale = 1.0 / (samples_per_pixel as f32);
             let r = (color.x * scale).sqrt();
@@ -93,7 +74,7 @@ fn main() {
             pixels.push((256.0 * b.clamp(0.0, 0.999)) as u8);
             pixels.push(255);
         }
-    }
+    };
     writer.write_image_data(&pixels).unwrap();
 }
 

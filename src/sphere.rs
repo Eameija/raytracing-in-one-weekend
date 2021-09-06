@@ -3,13 +3,13 @@ use crate::material::Material;
 use crate::ray::Ray;
 use glam::Vec3;
 
-pub struct Sphere {
+pub struct Sphere<M: Material> {
     pub center: Vec3,
     pub radius: f32,
-    pub material: Box<dyn Material>,
+    pub material: M,
 }
 
-impl Hitable for Sphere {
+impl<M: Material> Hitable for Sphere<M> {
     fn hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<HitRecord> {
         let oc = ray.origin - self.center;
         let a = ray.direction.length_squared();
@@ -41,7 +41,7 @@ impl Hitable for Sphere {
             p: point,
             normal: outward_normal,
             front_face: false,
-            material: &*self.material,
+            material: &self.material,
         };
 
         hit.set_face_normal(ray, hit.normal);

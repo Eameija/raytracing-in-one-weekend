@@ -1,7 +1,9 @@
 use glam::Vec3;
 
 use crate::hitable::HitableList;
-use crate::material::{Dielectric, Lambertian, Metal};
+use crate::material::dielectric::Dielectric;
+use crate::material::lambertian::Lambertian;
+use crate::material::metal::Metal;
 use crate::sphere::Sphere;
 use crate::utils::random_double;
 
@@ -48,13 +50,13 @@ pub fn random_scene() -> HitableList {
                         center,
                         radius: 0.2,
                         material: Metal { albedo, fuzz },
-                    })
+                    });
                 } else {
                     scene.add(Sphere {
                         center,
                         radius: 0.2,
                         material: Dielectric { ir: 1.5 },
-                    })
+                    });
                 }
             }
         }

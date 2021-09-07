@@ -1,4 +1,4 @@
-use crate::hitable::{Hitable, HitRecord};
+use crate::hitable::{HitRecord, Hitable};
 use crate::material::Material;
 use crate::ray::Ray;
 use glam::Vec3;
@@ -31,7 +31,6 @@ impl<M: Material> Hitable for Sphere<M> {
             if root < tmin || tmax < root {
                 return None;
             }
-            
         }
 
         let point = ray.at(root);

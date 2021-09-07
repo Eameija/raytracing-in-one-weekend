@@ -21,7 +21,7 @@ impl<'a> HitRecord<'a> {
     }
 }
 
-pub trait Hitable {
+pub trait Hitable: Send + Sync {
     fn hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<HitRecord>;
 }
 
@@ -31,15 +31,14 @@ pub struct HitableList {
 
 impl HitableList {
     pub fn new() -> Self {
-        HitableList {
-            objects: vec![],
-        }
+        HitableList { objects: vec![] }
     }
 
-    pub fn add(&mut self, hitable: impl Hitable + 'static) {
+    pub fn add(&mut self, hitable: impl Hitable + 'static + Send + Sync) {
         self.objects.push(Box::new(hitable));
     }
 }
+
 impl Hitable for HitableList {
     fn hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<HitRecord> {
         let mut best_hit = None;

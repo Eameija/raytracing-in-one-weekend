@@ -8,8 +8,8 @@ pub struct Camera {
     lower_left_corner: Vec3,
     horizontal: Vec3,
     vertical: Vec3,
-    lens_radius: f32, 
-    u: Vec3, 
+    lens_radius: f32,
+    u: Vec3,
     v: Vec3,
 }
 
@@ -32,8 +32,6 @@ impl Camera {
         let u = vup.cross(w).normalize();
         let v = w.cross(u);
 
-        let focal_length = 1.0;
-
         let origin = lookfrom;
         let horizontal = focus_dist * viewport_width * u;
         let vertical = focus_dist * viewport_height * v;
@@ -43,9 +41,9 @@ impl Camera {
 
         Camera {
             origin,
+            lower_left_corner,
             horizontal,
             vertical,
-            lower_left_corner,
             lens_radius,
             u,
             v,
@@ -58,7 +56,8 @@ impl Camera {
         Ray {
             origin: self.origin + offset,
             direction: self.lower_left_corner + s * self.horizontal + t * self.vertical
-                - self.origin - offset,
+                - self.origin
+                - offset,
         }
     }
 }

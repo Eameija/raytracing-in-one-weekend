@@ -18,7 +18,7 @@ fn main() {
     let width: u32 = 1200;
     let aspect_ratio: f32 = 3.0 / 2.0;
     let height: u32 = (width as f32 / aspect_ratio) as u32;
-    let samples_per_pixel = 10;
+    let samples_per_pixel = 500;
 
     let scene = random_scene();
     let lookfrom = Vec3::new(13.0, 2.0, 3.0);

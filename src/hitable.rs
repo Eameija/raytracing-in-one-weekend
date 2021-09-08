@@ -21,7 +21,7 @@ impl<'a> HitRecord<'a> {
     }
 }
 
-pub trait Hitable: Send + Sync {
+pub trait Hitable: Sync {
     fn hit(&self, ray: &Ray, tmin: f32, tmax: f32) -> Option<HitRecord>;
 }
 
@@ -34,7 +34,7 @@ impl HitableList {
         HitableList { objects: vec![] }
     }
 
-    pub fn add(&mut self, hitable: impl Hitable + 'static + Send + Sync) {
+    pub fn add(&mut self, hitable: impl Hitable + 'static + Sync) {
         self.objects.push(Box::new(hitable));
     }
 }

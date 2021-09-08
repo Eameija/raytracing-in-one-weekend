@@ -7,7 +7,7 @@ use glam::Vec3;
 use crate::hitable::HitRecord;
 use crate::ray::Ray;
 
-pub trait Material: Send + Sync {
+pub trait Material: Sync {
     fn scatter(&self, ray: &Ray, hit_record: &HitRecord) -> Option<Scatter>;
 }
 
